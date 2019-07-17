@@ -10,6 +10,7 @@ from helpers import SqlQueries
 # AWS_SECRET = os.environ.get('AWS_SECRET')
 
 default_args = {
+    'sparkify-airflow'
     'owner': 'udacity',
     'start_date': datetime(2019, 1, 12),
 }
@@ -63,3 +64,12 @@ run_quality_checks = DataQualityOperator(
 )
 
 end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
+
+# task dependencies
+start_operator >> stage_events_to_redshift >> load_songplays_table
+start_operator >> stage_songs_to_redshift >> load_songplays_table
+load_songplays_table >> load_song_dimension_table >> run_quality_checks
+load_songplays_table >> load_user_dimension_table >> run_quality_checks
+load_songplays_table >> load_artist_dimension_table >> run_quality_checks
+load_songplays_table >> load_time_dimension_table >> run_quality_checks
+run_quality_checks >> end_operator
